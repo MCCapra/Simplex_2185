@@ -9,16 +9,20 @@ Date: 2017/05
 
 #include "ControllerConfiguration.h"
 #include "imgui\ImGuiObject.h"
+#include <vector>
 
 #include "MyMesh.h"
 
 class Application
 {
 	MyMesh* m_pMesh = nullptr;
+	MyMesh* m_pMesh2 = nullptr;
 	String m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
 
 private:
 	static ImGuiObject gui; //GUI object
+	 
+	std::vector<matrix4> invaderList; //List of all the matrices we need to make our space invader out of. 
 
 	uint m_uRenderCallCount = 0; //count of render calls per frame
 	uint m_uControllerCount = 0; //count of controllers connected

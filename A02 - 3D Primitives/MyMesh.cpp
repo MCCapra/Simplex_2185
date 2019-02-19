@@ -276,7 +276,26 @@ void MyMesh::GenerateCone(float a_fRadius, float a_fHeight, int a_nSubdivisions,
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	//Make a circle, connect all vertexes on end to the point with tris
+	float angle = (2 * PI) / a_nSubdivisions;
+
+	vector3 bottomMidPoint(0, 0, 0); //Center of the circle
+	vector3 topConePoint(0, a_fHeight, 0); //Point of the cone
+	vector3 basePoint1(a_fRadius, 0, 0); //First point on the circle
+	matrix4 rotMat = glm::rotate(IDENTITY_M4, angle, vector3(0,1,0)); //Rotation Matrix 
+
+	vector3 basePoint2 = vector3(rotMat * vector4(basePoint1, 0)); //Apply rotation to make a second point for the circle
+	
+	AddTri(basePoint2, basePoint1, bottomMidPoint); //Create first subsection of the cone
+	AddTri(basePoint1, basePoint2, topConePoint); 
+
+	for (uint i = 0; i < a_nSubdivisions; i++) //Loop through and make rest of cone
+	{
+		basePoint1 = vector3(rotMat * vector4(basePoint1, 0));
+		basePoint2 = vector3(rotMat * vector4(basePoint2, 0));
+		AddTri(basePoint1, basePoint2, topConePoint);
+		AddTri(basePoint2, basePoint1, bottomMidPoint);
+	}
 	// -------------------------------
 
 	// Adding information about color
@@ -300,8 +319,42 @@ void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisi
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	//Make two circles, connect with quads
 	// -------------------------------
+
+	//Angle of rotation
+	float angle = (2 * PI) / a_nSubdivisions;
+	//Rotation matrix
+	matrix4 rotMat = glm::rotate(IDENTITY_M4, angle, vector3(0, 1, 0));
+
+	//First Circle
+	vector3 bottomCircleCenter(0, 0, 0);
+	vector3 bottomCirclePoint1(a_fRadius, 0, 0);
+	vector3 bottomCirclePoint2 = vector3(rotMat * vector4(bottomCirclePoint1, 0));
+
+	//Second Circle
+	vector3 topCircleCenter(0, a_fHeight, 0);
+	vector3 topCirclePoint1(a_fRadius, a_fHeight, 0);
+	vector3 topCirclePoint2 = vector3(rotMat * vector4(topCirclePoint1, 0));
+
+	AddTri(bottomCirclePoint1, bottomCirclePoint2, bottomCircleCenter);
+	AddTri(topCirclePoint1, topCirclePoint2, topCircleCenter);
+	AddQuad(bottomCirclePoint1, bottomCirclePoint2, topCirclePoint1, topCirclePoint2);
+
+	for (uint i = 0; i < a_nSubdivisions; i++)
+	{
+		//First Circle
+		bottomCirclePoint1 = vector3(rotMat * vector4(bottomCirclePoint1, 0));
+		bottomCirclePoint2 = vector3(rotMat * vector4(bottomCirclePoint2, 0));
+
+		//Second Circle
+		topCirclePoint1 = vector3(rotMat * vector4(topCirclePoint1, 0));
+		topCirclePoint2 = vector3(rotMat * vector4(topCirclePoint2, 0));
+
+		AddTri(bottomCircleCenter, bottomCirclePoint2, bottomCirclePoint1);
+		AddTri(topCirclePoint1, topCirclePoint2, topCircleCenter);
+		AddQuad(bottomCirclePoint1, bottomCirclePoint2, topCirclePoint1, topCirclePoint2);
+	}
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);
@@ -329,8 +382,62 @@ void MyMesh::GenerateTube(float a_fOuterRadius, float a_fInnerRadius, float a_fH
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
+	// Replace this with your code'
+	//make inner circle, outer circle. Both top and bottom.
+	//Connect with quads.
+
+	float angle = (2 * PI) / a_nSubdivisions;
+
+	//Rotation matrix
+	matrix4 rotMat = glm::rotate(IDENTITY_M4, angle, vector3(0, 1, 0));
+
+	//Center points, DO NOT USE FOR QUADS/TRIS
+	vector3 bottomCenterPoint(0, 0, 0);
+	vector3 topCenterPoint(0, a_fHeight, 0);
+
+	//Outer Radius and Inner Radius for bottom circle
+	vector3 bIRadiusPoint1(a_fInnerRadius, 0, 0);
+	vector3 bIRadiusPoint2 = vector3(rotMat * vector4(bIRadiusPoint1, 0));
+
+	vector3 bORadiusPoint1(a_fOuterRadius, 0, 0);
+	vector3 bORadiusPoint2 = vector3(rotMat * vector4(bORadiusPoint1, 0));
+
+	//Outer Radius and Inner Radius for top circle
+	vector3 tIRadiusPoint1(a_fInnerRadius, a_fHeight, 0);
+	vector3 tIRadiusPoint2 = vector3(rotMat * vector4(tIRadiusPoint1, 0));
+
+	vector3 tORadiusPoint1(a_fOuterRadius, a_fHeight, 0);
+	vector3 tORadiusPoint2 = vector3(rotMat * vector4(tORadiusPoint1, 0));
+
+	//create our quads
+	AddQuad(bIRadiusPoint1, bIRadiusPoint2, bORadiusPoint1, bORadiusPoint2);
+	AddQuad(tORadiusPoint1, tORadiusPoint2, tIRadiusPoint1, tIRadiusPoint2);
+	AddQuad(bIRadiusPoint2, bIRadiusPoint1, tIRadiusPoint2, tIRadiusPoint1);
+	AddQuad(bORadiusPoint1, bORadiusPoint2, tORadiusPoint1, tORadiusPoint2);
+
+	for (uint i = 0; i < a_nSubdivisions; i++)
+	{
+		//Outer Radius and Inner Radius for bottom circle
+		bIRadiusPoint1 = vector3(rotMat * vector4(bIRadiusPoint1, 0));
+		bIRadiusPoint2 = vector3(rotMat * vector4(bIRadiusPoint1, 0));
+
+		bORadiusPoint1 = vector3(rotMat * vector4(bORadiusPoint1, 0));
+		bORadiusPoint2 = vector3(rotMat * vector4(bORadiusPoint1, 0));
+
+		//Outer Radius and Inner Radius for top circle
+		tIRadiusPoint1 = vector3(rotMat * vector4(tIRadiusPoint1, 0));
+		tIRadiusPoint2 = vector3(rotMat * vector4(tIRadiusPoint1, 0));
+
+		tORadiusPoint1 = vector3(rotMat * vector4(tORadiusPoint1, 0));
+		tORadiusPoint2 = vector3(rotMat * vector4(tORadiusPoint1, 0));
+
+		AddQuad(bIRadiusPoint1, bIRadiusPoint2, bORadiusPoint1, bORadiusPoint2);
+		AddQuad(tORadiusPoint1, tORadiusPoint2, tIRadiusPoint1, tIRadiusPoint2);
+		AddQuad(bIRadiusPoint2, bIRadiusPoint1, tIRadiusPoint2, tIRadiusPoint1);
+		AddQuad(bORadiusPoint1, bORadiusPoint2, tORadiusPoint1, tORadiusPoint2);
+	}
+
+
 	// -------------------------------
 
 	// Adding information about color
@@ -380,17 +487,68 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 		GenerateCube(a_fRadius * 2.0f, a_v3Color);
 		return;
 	}
-	if (a_nSubdivisions > 6)
-		a_nSubdivisions = 6;
+	if (a_nSubdivisions > 10)
+		a_nSubdivisions = 10;
 
 	Release();
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	float hzStep = (2 * PI) / a_nSubdivisions; //Angle of horizontal rotation
+	float vrtStep = PI / a_nSubdivisions; //Angle of vertical rotation
+	
+	std::vector<vector3> points;
+
+	float hzAngle, vrtAngle;
+	float x, y, z, xz; //These components will help us make each vertex; xy is the projection of z over the plane xy
+
+	//Make the sphere
+	for (uint i = 0; i <= a_nSubdivisions; i++)
+	{
+		//This gets us the Z value of any given point on the sphere
+		vrtAngle = PI / 2 - i * vrtStep; //Rotate from 180 to 0
+		xz = a_fRadius * cosf(vrtAngle);
+		y = a_fRadius * sinf(vrtAngle);
+		
+		//get the x and y values of any given point on the sphere.
+		for (uint j = 0; j <= a_nSubdivisions; j++)
+		{
+			hzAngle = j * hzStep;
+
+			//Get x and Y values;
+			x = xz * cosf(hzAngle);
+			z = xz * sinf(hzAngle);
+
+			vector3 point(x, y, z);
+			points.push_back(point);
+		}
+	}
+
+
+	int ind1, ind2; //Index values for points to be drawn
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		ind1 = i * (a_nSubdivisions + 1);
+		ind2 = ind1 + a_nSubdivisions + 1;
+
+		for (int j = 0; j < a_nSubdivisions; j++, ind1++, ind2++)
+		{
+			if (i != 0)
+			{
+				AddTri(points[ind1], points[ind2], points[ind1 + 1]);
+			}
+
+			if (i != (a_nSubdivisions - 1))
+			{
+				AddTri(points[ind1 + 1], points[ind2], points[ind2 + 1]);
+			}
+		}
+	}
 	// -------------------------------
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);
 	CompileOpenGL3X();
+
+	points.clear();
 }

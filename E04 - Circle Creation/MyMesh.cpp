@@ -16,7 +16,27 @@ void MyMesh::GenerateCircle(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 		Calculate a_nSubdivisions number of points around a center point in a radial manner
 		then call the AddTri function to generate a_nSubdivision number of faces
 	*/
+	float angle = (2 * PI) / a_nSubdivisions;
 
+	glm::mat4 rotationMat(1); //Rotation matrix
+	rotationMat = glm::rotate(rotationMat, angle, vector3(0, 0, 1));
+
+	vector3 cPoint(0, 0, 0);
+	vector3 tPointStart(0, a_fRadius, 0);
+	vector3 tPointEnd = vector3(rotationMat * vector4(tPointStart, 0));
+	
+	AddVertexPosition(cPoint);
+	AddVertexPosition(tPointStart);
+	AddVertexPosition(tPointEnd);
+
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		tPointStart = vector3(rotationMat * vector4(tPointStart, 0));
+		tPointEnd = vector3(rotationMat * vector4(tPointEnd, 0));
+		AddVertexPosition(cPoint);
+		AddVertexPosition(tPointStart);
+		AddVertexPosition(tPointEnd);
+	}
 	// Adding information about color
 	CompleteMesh(a_v3Color);
 	CompileOpenGL3X();
