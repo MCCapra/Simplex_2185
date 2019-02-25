@@ -33,20 +33,26 @@ void Application::Display(void)
 	float fTimer = m_pSystem->GetTimeSinceStart(uClock);
 
 	//calculate the current position
-	matrix4 m4Rotation = glm::rotate(IDENTITY_M4, glm::radians(fTimer * 60.0f), vector3(0.0f, 0.0f, 1.0f));
+	matrix4 m4Rotation = glm::rotate(IDENTITY_M4, glm::radians(fTimer * 60.0f), vector3(0.0f, 0.0f, 0.0f));
 	matrix4 m4Model;
-	for (uint i = 0; i < 2500; ++i)
-		m4Model = m4Rotation * glm::translate(IDENTITY_M4, vector3(2.5f, 0.0f, 0.0f)) * glm::transpose(m4Rotation);
-	
-	/*
-	//extra part, how to rotate around a point (in this case the base of the cone)
+	m4Model = glm::rotate(IDENTITY_M4, glm::radians(m_v3Rotations.z), AXIS_Z);
+	m4Model *= glm::rotate(IDENTITY_M4, glm::radians(m_v3Rotations.y), AXIS_Y);
+	m4Model *= glm::rotate(IDENTITY_M4, glm::radians(m_v3Rotations.x), AXIS_X);
+
+	/*//extra part, how to rotate around a point (in this case the base of the cone)
 	matrix4 m4Translation = glm::translate(IDENTITY_M4, vector3(0.0f, 0.5f, 0.0f));
 	matrix4 m4TransInverse = glm::translate(IDENTITY_M4, vector3(0.0f, -0.5f, 0.0f));
-	m4Model = m4TransInverse * m4Rotation * m4Translation;
-	*/
+	m4Model = m4TransInverse * m4Rotation * m4Translation;*/
+	
+	glm::quat q1 = glm::angleAxis(glm::radians(0.0f), AXIS_Z);
+	quaternion q2 = glm::angleAxis(glm::radians(90.0f), AXIS_Z);
+
+	float fTotalTime = 5.0f;
+	float fPercentage = MapValue(fTimer, 0.0f, fTotalTime, 0.0f, 1.0f);
+	quaternion q3 = glm::mix(q1, q2, fPercentage);
 
 	// render the object
-	m_pMesh->Render(m4Projection, m4View, m4Model);
+	m_pMesh->Render(m4Projection, m4View, ToMatrix4(q3));
 	
 	// draw a skybox
 	m_pMeshMngr->AddSkyboxToRenderList();
