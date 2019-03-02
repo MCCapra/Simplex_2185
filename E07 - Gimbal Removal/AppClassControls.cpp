@@ -389,6 +389,14 @@ void Application::ProcessKeyboard(void)
 	for discreet on/off use ProcessKeyboardPressed/Released
 	*/
 #pragma region Camera Position
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Add))
+	{
+		m_fFOV += 1.0f;
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Subtract))
+	{
+		m_fFOV -= 1.0f;
+	}
 	float fSpeed = 1.0f;
 	float fMultiplier = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) ||
 		sf::Keyboard::isKeyPressed(sf::Keyboard::RShift);

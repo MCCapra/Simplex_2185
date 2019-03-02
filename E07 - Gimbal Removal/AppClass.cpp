@@ -23,7 +23,14 @@ void Application::Display(void)
 	ClearScreen();
 
 	matrix4 m4View = m_pCameraMngr->GetViewMatrix();
-	matrix4 m4Projection = m_pCameraMngr->GetProjectionMatrix();
+
+	float fAspect = m_pSystem->GetWindowWidth() / static_cast<float>(m_pSystem->GetWindowHeight());
+	float fNear = 0.01f;
+	float fFar = 1000.0f;
+	matrix4 m4Projection = glm::perspective(m_fFOV, fAspect, fNear, fFar);
+	vector3 v3Eye = vector3(0.0f, 0.0f, 5.0f);
+	vector3 v3Center = vector3(0);
+	vector3 v3Upward = vector3(0.0f, 1.0f, 0.0f);
 	quaternion q1, q2, q3;
 
 	/*m_m4Model = glm::rotate(IDENTITY_M4, glm::radians(m_v3Rotation.x), vector3(1.0f, 0.0f, 0.0f));

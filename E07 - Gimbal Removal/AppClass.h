@@ -14,6 +14,7 @@ Date: 2017/05
 
 class Application
 {
+	float m_fFOV = 45.0f;
 	matrix4 m_m4Model = IDENTITY_M4;
 	quaternion m_qOrientation;
 	vector3 m_v3Rotation;
