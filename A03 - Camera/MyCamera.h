@@ -15,7 +15,9 @@ class MyCamera
 	vector3 m_v3Position = vector3(0.0f, 0.0f, 10.0f); //Where my camera is located
 	vector3 m_v3Target = vector3(0.0f, 0.0f, 0.0f); //What I'm looking at
 	vector3 m_v3Above = vector3(0.0f, 1.0f, 0.0f); //What is above the camera
-	vector3 m_v3Forward = -AXIS_Z;
+	vector3 m_v3Forward = -AXIS_Z;//Forward vector
+	vector3 m_v3Right = AXIS_X; //Right vector
+	vector3 m_v3Up = AXIS_Y; //Up vector
 
 	bool m_bPerspective = true; //perspective view? False is Orthographic
 
@@ -102,6 +104,27 @@ public:
 	OUTPUT: position of the camera
 	*/
 	vector3 GetPosition(void);
+
+	/*
+	  Getter/Setter for Forward Vector
+	*/
+
+	vector3 GetForward(void);
+	void SetForward(vector3 a_v3Forward);
+
+	/*
+	  Getter/Setter for Right Vector
+	*/
+
+	vector3 GetRight(void);
+	void SetRight(vector3 a_v3Right);
+
+	/*
+	  Getter/Setter for Up Vector
+	*/
+
+	vector3 GetUp(void);
+	void SetUp(vector3 a_v3Up);
 
 	/*
 	USAGE: Sets what the camera will be looking at

@@ -4,6 +4,22 @@ using namespace Simplex;
 //Accessors
 void Simplex::MyCamera::SetPosition(vector3 a_v3Position) { m_v3Position = a_v3Position; }
 vector3 Simplex::MyCamera::GetPosition(void) { return m_v3Position; }
+vector3 Simplex::MyCamera::GetForward(void)
+{
+	return m_v3Forward;
+}
+void Simplex::MyCamera::SetForward(vector3 a_v3Forward)
+{
+	m_v3Forward = a_v3Forward;
+}
+vector3 Simplex::MyCamera::GetRight(void)
+{
+	return m_v3Right;
+}
+void Simplex::MyCamera::SetRight(vector3 a_v3Right)
+{
+	m_v3Right = a_v3Right;
+}
 void Simplex::MyCamera::SetTarget(vector3 a_v3Target) { m_v3Target = a_v3Target; }
 vector3 Simplex::MyCamera::GetTarget(void) { return m_v3Target; }
 void Simplex::MyCamera::SetAbove(vector3 a_v3Above) { m_v3Above = a_v3Above; }
@@ -158,5 +174,15 @@ void MyCamera::MoveForward(float a_fDistance)
 	m_v3Above += m_v3Forward * a_fDistance;
 }
 
-void MyCamera::MoveVertical(float a_fDistance){}//Needs to be defined
-void MyCamera::MoveSideways(float a_fDistance){}//Needs to be defined
+void MyCamera::MoveVertical(float a_fDistance)
+{
+	m_v3Position += m_v3Up* a_fDistance;
+	m_v3Target += m_v3Up * a_fDistance;
+	m_v3Above += m_v3Up * a_fDistance;
+}//Needs to be defined
+void MyCamera::MoveSideways(float a_fDistance)
+{
+	m_v3Position += m_v3Right * a_fDistance;
+	m_v3Target += m_v3Right * a_fDistance;
+	m_v3Above += m_v3Right * a_fDistance;
+}//Needs to be defined
