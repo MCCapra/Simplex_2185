@@ -87,7 +87,40 @@ void MyRigidBody::SetModelMatrix(matrix4 a_m4ModelMatrix)
 	//your code goes here---------------------
 	m_v3MinG = m_v3MinL;
 	m_v3MaxG = m_v3MaxL;
-	//----------------------------------------
+
+	//Make our points for the box.
+	vector3 ARBBPoints[8];
+	//Front
+	ARBBPoints[0] = vector3(m_v3MinL);
+	ARBBPoints[1] = vector3(m_v3MaxL.x, m_v3MinL.y, m_v3MinL.z);
+	ARBBPoints[2] = vector3(m_v3MinL.x, m_v3MaxL.y, m_v3MinL.z);
+	ARBBPoints[3] = vector3(m_v3MaxL.x, m_v3MaxL.y, m_v3MinL.z);
+	//Back
+	ARBBPoints[0] = vector3(m_v3MinL.x, m_v3MinL.y, m_v3MaxL.z);
+	ARBBPoints[0] = vector3(m_v3MaxL.x, m_v3MinL.y, m_v3MaxL.z);
+	ARBBPoints[0] = vector3(m_v3MinL.x, m_v3MaxL.y, m_v3MaxL.z);
+	ARBBPoints[0] = vector3(m_v3MaxL);
+
+	//Globalize ALL THE POINTS
+	for (int i = 0; i < 8; i++)
+	{
+		ARBBPoints[i] = vector3(m_m4ToWorld * vector4(ARBBPoints[i], 1));
+	}
+
+	//Calculate Min and Max
+	m_v3MaxG = m_v3MinG = ARBBPoints[0];
+
+	for (int i = 1; i < 8; i++)
+	{
+		if (m_v3MaxG.x < ARBBPoints[i].x) m_v3MaxG.x = ARBBPoints[i].x;
+		else if (m_v3MinG.x > ARBBPoints[i].x) m_v3MinG.x = ARBBPoints[i].x;
+
+		if (m_v3MaxG.y < ARBBPoints[i].y) m_v3MaxG.y = ARBBPoints[i].y;
+		else if (m_v3MinG.y > ARBBPoints[i].y) m_v3MinG.y = ARBBPoints[i].y;
+
+		if (m_v3MaxG.z < ARBBPoints[i].z) m_v3MaxG.z = ARBBPoints[i].z;
+		else if (m_v3MinG.z > ARBBPoints[i].z) m_v3MinG.z = ARBBPoints[i].z;
+	}
 
 	//we calculate the distance between min and max vectors
 	m_v3ARBBSize = m_v3MaxG - m_v3MinG;
