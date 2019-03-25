@@ -288,5 +288,101 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	*/
 
 	//there is no axis test that separates this two objects
-	return eSATResults::SAT_NONE;
+	//First we'll store the two radii
+	float v_ThisRadius; //Radius of the current rigid body
+	float v_ThatRadius; //Radius of the other rigid body
+
+	//3x3 Matrices that we store the rotations of both objects, relative to each other
+	glm::mat3x3 thisRot, absRot; //This: Rotation of other relative to this, abs: Calculate rotation taking into account arithmatic errors when two planes are parallel and their cross products are near null
+
+	//Local X Y Z axis of each item
+	std::vector<vector3> au;
+	au.push_back(vector3(this->GetModelMatrix()[0][0], this->GetModelMatrix()[0][1], this->GetModelMatrix()[0][2]));
+	au.push_back(vector3(this->GetModelMatrix()[1][0], this->GetModelMatrix()[1][1], this->GetModelMatrix()[1][2]));
+	au.push_back(vector3(this->GetModelMatrix()[2][0], this->GetModelMatrix()[2][1], this->GetModelMatrix()[2][2]));
+	
+	std::vector<vector3> bu;
+	bu.push_back(vector3(a_pOther->GetModelMatrix()[0][0], a_pOther->GetModelMatrix()[0][1], a_pOther->GetModelMatrix()[0][2]));
+	bu.push_back(vector3(a_pOther->GetModelMatrix()[1][0], a_pOther->GetModelMatrix()[1][1], a_pOther->GetModelMatrix()[1][2]));
+	bu.push_back(vector3(a_pOther->GetModelMatrix()[2][0], a_pOther->GetModelMatrix()[2][1], a_pOther->GetModelMatrix()[2][2]));
+	
+	//Calculate other objects rotation relative to this object
+	for (uint i = 0; i < 3; i++)
+		for (uint j = 0; j < 3; j++)
+			thisRot[i][j] = glm::dot(au[i], bu[j]);
+
+	//Distance between this and other
+	vector3 t = a_pOther->GetCenterGlobal() - this->GetCenterGlobal();
+
+	//Bring that into this's coordinate frame
+	t = vector3(glm::dot(t, au[0]), glm::dot(t, au[1]), glm::dot(t, au[2]));
+
+	//Calculate absRot using EPSILON to fix arithmatic errors
+	for (uint i = 0; i < 3; i++)
+		for (uint j = 0; j < 3; j++)
+			absRot[i][j] = glm::abs(thisRot[i][j]) + FLT_EPSILON;
+			
+	//Start testing the axis
+
+	// Test other X Y Z axis
+	for (int i = 0; i < 3; i++) {
+		v_ThisRadius = this->GetHalfWidth()[i];
+		v_ThatRadius = a_pOther->GetHalfWidth()[0] * absRot[i][0] + a_pOther->GetHalfWidth()[1] * absRot[i][1] + a_pOther->GetHalfWidth()[2] * absRot[i][2];
+		if (glm::abs(t[i]) > v_ThisRadius + v_ThatRadius) return 1;
+	}
+
+	// Test this X Y Z axis
+	for (int i = 0; i < 3; i++) {
+		v_ThisRadius = this->GetHalfWidth()[0] * absRot[0][i] + this->GetHalfWidth()[1] * absRot[1][i] + this->GetHalfWidth()[2] * absRot[2][i];
+		v_ThatRadius = a_pOther->GetHalfWidth()[i];
+		if (glm::abs(t[0] * thisRot[0][i] + t[1] * thisRot[1][i] + t[2] * thisRot[2][i]) > v_ThisRadius + v_ThatRadius) return 1;
+	}
+
+	 // Test this X and Other X
+	v_ThisRadius = this->GetHalfWidth()[1] * absRot[2][0] + this->GetHalfWidth()[2] * absRot[1][0];
+	v_ThatRadius = a_pOther->GetHalfWidth()[1] * absRot[0][2] + a_pOther->GetHalfWidth()[2] * absRot[0][1];
+	if (glm::abs(t[2] * thisRot[1][0] - t[1] * thisRot[2][0]) > v_ThisRadius + v_ThatRadius) return 1;
+
+	// Test this X and Other Y
+	v_ThisRadius = this->GetHalfWidth()[1] * absRot[2][1] + this->GetHalfWidth()[2] * absRot[1][1];
+	v_ThatRadius = a_pOther->GetHalfWidth()[0] * absRot[0][2] + a_pOther->GetHalfWidth()[2] * absRot[0][0];
+	if (glm::abs(t[2] * thisRot[1][1] - t[1] * thisRot[2][1]) > v_ThisRadius + v_ThatRadius) return 1;
+
+	// Test this X and Other Y
+	v_ThisRadius = this->GetHalfWidth()[1] * absRot[2][2] + this->GetHalfWidth()[2] * absRot[1][2];
+	v_ThatRadius = a_pOther->GetHalfWidth()[0] * absRot[0][1] + a_pOther->GetHalfWidth()[1] * absRot[0][0];
+	if (glm::abs(t[2] * thisRot[1][2] - t[1] * thisRot[2][2]) > v_ThisRadius + v_ThatRadius) return 1;
+
+	// Test this Y and Other X
+	v_ThisRadius = this->GetHalfWidth()[0] * absRot[2][0] + this->GetHalfWidth()[2] * absRot[0][0];
+	v_ThatRadius = a_pOther->GetHalfWidth()[1] * absRot[1][2] + a_pOther->GetHalfWidth()[2] * absRot[1][1];
+
+	if (glm::abs(t[0] * thisRot[2][0] - t[2] * thisRot[0][0]) > v_ThisRadius + v_ThatRadius) return 1;
+
+	// Test this Y and Other Y
+	v_ThisRadius = this->GetHalfWidth()[0] * absRot[2][1] + this->GetHalfWidth()[2] * absRot[0][1];
+	v_ThatRadius = a_pOther->GetHalfWidth()[0] * absRot[1][2] + a_pOther->GetHalfWidth()[2] * absRot[1][0];
+	if (glm::abs(t[0] * thisRot[2][1] - t[2] * thisRot[0][1]) > v_ThisRadius + v_ThatRadius) return 1;
+
+	// Test athis Y and Other Z
+	v_ThisRadius = this->GetHalfWidth()[0] * absRot[2][2] + this->GetHalfWidth()[2] * absRot[0][2];
+	v_ThatRadius = a_pOther->GetHalfWidth()[0] * absRot[1][1] + a_pOther->GetHalfWidth()[1] * absRot[1][0];
+	if (glm::abs(t[0] * thisRot[2][2] - t[2] * thisRot[0][2]) > v_ThisRadius + v_ThatRadius) return 1;
+
+	// Test this Z and other X
+	v_ThisRadius = this->GetHalfWidth()[0] * absRot[1][0] + this->GetHalfWidth()[1] * absRot[0][0];
+	v_ThatRadius = a_pOther->GetHalfWidth()[1] * absRot[2][2] + a_pOther->GetHalfWidth()[2] * absRot[2][1];
+	if (glm::abs(t[1] * thisRot[0][0] - t[0] * thisRot[1][0]) > v_ThisRadius + v_ThatRadius) return 1;
+
+	// Test this Z and other Y
+	v_ThisRadius = this->GetHalfWidth()[0] * absRot[1][1] + this->GetHalfWidth()[1] * absRot[0][1];
+	v_ThatRadius = a_pOther->GetHalfWidth()[0] * absRot[2][2] + a_pOther->GetHalfWidth()[2] * absRot[2][0];
+	if (glm::abs(t[1] * thisRot[0][1] - t[0] * thisRot[1][1]) > v_ThisRadius + v_ThatRadius) return 1;
+
+	// Test this Z and other Z
+	v_ThisRadius = this->GetHalfWidth()[0] * absRot[1][2] + this->GetHalfWidth()[1] * absRot[0][2];
+	v_ThatRadius = a_pOther->GetHalfWidth()[0] * absRot[2][1] + a_pOther->GetHalfWidth()[1] * absRot[2][0];
+	if (glm::abs(t[1] * thisRot[0][2] - t[0] * thisRot[1][2]) > v_ThisRadius + v_ThatRadius) return 1;
+
+	return 0;
 }
